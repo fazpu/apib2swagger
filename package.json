@@ -6,7 +6,8 @@
   "scripts": {
     "prepareTest": "cross-env PREPARE=true mocha",
     "test": "nyc --reporter=html --reporter=text mocha",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "swagger": "node convert-test.js"
   },
   "repository": {
     "type": "git",

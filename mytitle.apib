@@ -1,0 +1,297 @@
+FORMAT: 1A
+HOST: http://mytitle.com
+
+# mytitle.com API Blueprint
+
+#### run tests like:
+
+`dredd ./mytitle.apib http://127.0.0.1:8000`
+
+Might need to switch to testing database
+since it hits the endpoints for real.
+
+#### run mock server like:
+
+`drakov -f mytitle.apib -p 3000`
+
+#### other tools:
+
+https://github.com/apiaryio/curl-trace-parser so you can record interactions like `curl --trace - http://httpbin.org/ip | curl-trace-parser --blueprint`
+
+https://github.com/jamesramsay/hercule
+
+https://github.com/saamo/api-blueprint-focus-booster
+
+#### general url scheme:
+
+`<domain>/api/v<api_version_number>/<service>/<endpoint>`
+
+`http://www.mytitle.com/api/v1/users/register?arg=something`
+
+# Group 'mytitle' service:
+
+proposed endpoints include: `upload`, `secure`, `submit_hash`
+
+## DocumentsList [/document]
+
+This resource represents list of all documents
+
+### List all documents [GET /document{?public,type,user}]
+
++ Parameters
+    + public (boolean, optional): `true` - true or false
+    + type (string, optional): `text` - 'text' or 'image' or 'video'
+    + user (string, optional): `0c42933b-1674-4722-b260-26598d2b742b` - user guid
+
++ Response 200 (application/json)
+
+    + Attributes (array[ListAllDocumentsResponse], fixed-type)
+
+### Create a new document [POST /document]
+
+Creates a new document. The document file is accepted in form of `multipart/form‑data`
+simply under the `file` value.
+
++ Request (multipart/form-data;boundary=----WebKitFormBoundary8M3sSU13ul5lXSJm)
+
+    + Headers
+
+            Authorization: Token 2112ce7e931210edc3155fab925daf1c0d60ce9b
+
+    + Body
+
+            ------WebKitFormBoundary8M3sSU13ul5lXSJm
+            Content-Disposition: form-data; name="file"; filename="a.txt"
+            Content-Type: text/plain
+
+            Content of a.txt.
+
+            ------WebKitFormBoundary8M3sSU13ul5lXSJm--
+
++ Response 201 (application/json)
+
+    + Attributes (CreateNewDocumentResponse)
+
+# Group 'users' service:
+
+## Registration [api/v1/users/register]
+
+Registration takes 2 steps. In the first step client sends user name and email.
+The server sends an email verification to the email address.
+
+### NewRegistration [POST /api/v1/users/register/new]
+
+Creates new user account with user name and email. Sends a verification email.
+Server will always return 204 if the email is in correct form as a protection
+against user enumeration.
+
+Can be used to resend the email verification email (before the email address is
+verified). Email verification message contains a code that the user needs
+to enter to verify email.
+
++ Request (application/json)
+
+    + Attributes
+
+        + email: email@example.com (string, required)
+
++ Response 204
+
+
+### VerifyEmail [POST /api/v1/users/register/email_verify]
+
+Verifies email and setups news password. Both are required.
+
++ Request (application/json)
+
+    + Attributes
+
+        + code: 4578 (string, required)
+        + password: hVvhrnGP (string, required)
+        + email: email@example.com (string, required)
+
++ Response 204
+
+## Login [/api/v1/users/login]
+
+### UserLogin [POST]
+
+Logs in the user using provided credentials.
+ https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
+
++ Request (application/json)
+
+    + Attributes
+
+        + email: email@example.com (string, required)
+        + password: hJBRgC8GmDNg (string, required)
+
++ Response 200 (application/json)
+
+    + Attributes (OAuthValidResponse)
+
+## UserInfo [/api/v1/users/user_info]
+
+### Retrieve user info [GET]
+
++ Request
+
+    + Headers
+
+            Authorization: Bearer JWT
+
++ Response 200
+
+    + Attributes (UserInfo)
+
+### Change user info [PATCH]
+
+Changes user info (only parts sent in body).
+
++ Request
+
+    + Headers
+
+            Authorization: Bearer JWT
+
+    + Attributes (ChangeUserInfo)
++ Response 200
+
+
+## Refresh token [/api/v1/users/refresh_token]
+
+### Refresh token [POST]
+
++ Request
+
+    + Headers
+
+            Authorization: Bearer JWT
+
++ Response 200 (application/json)
+
+    + Attributes (OAuthValidResponse)
+
+## Passwords [/api/v1/users/password]
+
+### Change password [POST /api/v1/users/password/change]
+
+Change password
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer JWT
+
+    + Attributes
+
+        + old_password: password (string, required)
+        + new_password: newPassword (string, required)
+
++ Response 204
+
+### Forgot password (request) [POST /api/v1/users/password/forgot_request]
+
+Requests a forgot password email with link to reset it.
+
++ Request (application/json)
+
+    + Attributes
+
+        + email: email@example.com (required)
+
++ Response 204
+
+### Forgot password (verify) [POST /api/v1/users/password/forgot_verify]
+
+Verifies and sets new password.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer JWT
+
+    + Attributes
+
+        + code: hJBRgC8GmDNg (string, required)
+        + new_password: Mjby3cpfsZUC (string, required)
+
++ Response 204
+
+### Score password [POST /api/v1/users/password/score]
+
+Checks password security.
+Responds `204` if password security is sufficient.
+Responds `400` with error code if not.
+
++ Request (application/json)
+
+    + Attributes
+
+        + password: hJBRgC8GmDNg (string, required)
+
++ Response 204
+
++ Response 400
+
+    + Attributes
+
+        + error_code: ERR_PASSWORD_TOO_SHORT (string, required)
+
+# Group 'billing' service:
+
+proposed endpoint include: `check_credit`, `count_in`, `top_up`, `account_info`, `history`
+
+# Group 'render' service:
+
+takes care of rendering pdfs and images like qr codes, certificates and so on.
+
+proposed endpoints include: `signable`, `qr_code`, `certificate`, `badge`
+
+# Data Structures
+
+## OAuthValidResponse (object)
++ `access_token`: `eyJhbGciOiJIUzI1NiJ9.e30.XmNK3GpH3Ys_7wsYBfq4C3M6goz71I7dTgUkuIa5lyQ` (string, required) - valid JWT
++ `expires_in`: 300 (number, required)
++ `token_type`: Bearer (required)
+
+## UserInfo (object)
++ email: user@example.com (required)
++ full_name: John Example
++ address (Address)
++ id_card (IDCard)
+
+## ChangeUserInfo (object)
++ full_name: John Example
++ address (Address)
++ id_card (IDCard)
+
+## IDCard
++ type (enum[string])
+    - passport
+    - drivers_license
+    - personal
++ number: 2254124 (string, required)
++ valid_to: 2008-09-15 (string) - ISO 8601 date part
+
+## Address (object)
++ street_address : 245 Rockfor Lane (string, optional)
++ city : Springfield (string, optional)
++ postal_code : G35435 (string, optional)
++ state : Texas (string, optional) - only required when country is USA
++ country : USA (string, optional) - ISO 3166-1 alpha-3
+
+## ListAllDocumentsResponse (object)
++ id: 1 (number, required)
++ guid: `0c42933b-1674-4722-b260-26598d2b742b` (string, required)
+
+## CreateNewDocumentResponse (object)
++ id: 9 (number, required)
++ guid: `63ba3020-efcf-4263-a110-de263bc1d469` (string, required)
++ time_created: `2018-12-10T12:41:48.231309+01:00` (string, required)
++ sha512: "c0108669b59b9a04fc3384fe537d924b0a6a2e8560262fb5d857ebbe60a03cf41a66c722df55d23a368d1e48517ec27ff2308402450fdabfec57857242b9144d" (string, required)
++ short_sha: c604cd65 (string, required)
++ private_key_field: lkajhflkasjdhf (string, required)
+

@@ -1,0 +1,599 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "mytitle.com API Blueprint",
+    "version": "",
+    "description": "#### run tests like:\n\n`dredd ./mytitle.apib http://127.0.0.1:8000`\n\nMight need to switch to testing database\nsince it hits the endpoints for real.\n\n#### run mock server like:\n\n`drakov -f mytitle.apib -p 3000`\n\n#### other tools:\n\nhttps://github.com/apiaryio/curl-trace-parser so you can record interactions like `curl --trace - http://httpbin.org/ip | curl-trace-parser --blueprint`\n\nhttps://github.com/jamesramsay/hercule\n\nhttps://github.com/saamo/api-blueprint-focus-booster\n\n#### general url scheme:\n\n`<domain>/api/v<api_version_number>/<service>/<endpoint>`\n\n`http://www.mytitle.com/api/v1/users/register?arg=something`"
+  },
+  "host": "mytitle.com",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/document": {
+      "get": {
+        "operationId": "List-all-documents-GET",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {},
+            "examples": {
+              "application/json": [
+                {
+                  "id": 1,
+                  "guid": "0c42933b-1674-4722-b260-26598d2b742b"
+                }
+              ]
+            },
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ListAllDocumentsResponse"
+              }
+            }
+          }
+        },
+        "summary": "List all documents",
+        "description": "",
+        "tags": [
+          "'mytitle' service:"
+        ],
+        "parameters": [],
+        "produces": [
+          "application/json"
+        ]
+      },
+      "post": {
+        "operationId": "Create-a-new-document-POST",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "headers": {},
+            "examples": {
+              "application/json": {
+                "id": 9,
+                "guid": "63ba3020-efcf-4263-a110-de263bc1d469",
+                "time_created": "2018-12-10T12:41:48.231309+01:00",
+                "sha512": "\"c0108669b59b9a04fc3384fe537d924b0a6a2e8560262fb5d857ebbe60a03cf41a66c722df55d23a368d1e48517ec27ff2308402450fdabfec57857242b9144d\"",
+                "short_sha": "c604cd65",
+                "private_key_field": "lkajhflkasjdhf"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/CreateNewDocumentResponse"
+            }
+          }
+        },
+        "summary": "Create a new document",
+        "description": "Creates a new document. The document file is accepted in form of `multipart/form‑data`\nsimply under the `file` value.",
+        "tags": [
+          "'mytitle' service:"
+        ],
+        "parameters": [],
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/api/v1/users/register/new": {
+      "post": {
+        "operationId": "NewRegistration-POST",
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "headers": {},
+            "examples": {}
+          }
+        },
+        "summary": "NewRegistration",
+        "description": "Creates new user account with user name and email. Sends a verification email.\nServer will always return 204 if the email is in correct form as a protection\nagainst user enumeration.\n\nCan be used to resend the email verification email (before the email address is\nverified). Email verification message contains a code that the user needs\nto enter to verify email.",
+        "tags": [
+          "'users' service:"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/users/register/email_verify": {
+      "post": {
+        "operationId": "VerifyEmail-POST",
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "headers": {},
+            "examples": {}
+          }
+        },
+        "summary": "VerifyEmail",
+        "description": "Verifies email and setups news password. Both are required.",
+        "tags": [
+          "'users' service:"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "password",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/users/login": {
+      "post": {
+        "operationId": "UserLogin-POST",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {},
+            "examples": {
+              "application/json": {
+                "access_token": "eyJhbGciOiJIUzI1NiJ9.e30.XmNK3GpH3Ys_7wsYBfq4C3M6goz71I7dTgUkuIa5lyQ",
+                "expires_in": 300,
+                "token_type": "Bearer"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/OAuthValidResponse"
+            }
+          }
+        },
+        "summary": "UserLogin",
+        "description": "Logs in the user using provided credentials.\n https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/",
+        "tags": [
+          "'users' service:"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "password",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/api/v1/users/user_info": {
+      "get": {
+        "operationId": "Retrieve-user-info-GET",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {},
+            "examples": {},
+            "schema": {
+              "$ref": "#/definitions/UserInfo"
+            }
+          }
+        },
+        "summary": "Retrieve user info",
+        "description": "",
+        "tags": [
+          "'users' service:"
+        ],
+        "parameters": [],
+        "security": [
+          {
+            "oauth2": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "Change-user-info-PATCH",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {},
+            "examples": {}
+          }
+        },
+        "summary": "Change user info",
+        "description": "Changes user info (only parts sent in body).",
+        "tags": [
+          "'users' service:"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ChangeUserInfo"
+            }
+          }
+        ],
+        "security": [
+          {
+            "oauth2": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/refresh_token": {
+      "post": {
+        "operationId": "Refresh-token-POST",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {},
+            "examples": {
+              "application/json": {
+                "access_token": "eyJhbGciOiJIUzI1NiJ9.e30.XmNK3GpH3Ys_7wsYBfq4C3M6goz71I7dTgUkuIa5lyQ",
+                "expires_in": 300,
+                "token_type": "Bearer"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/OAuthValidResponse"
+            }
+          }
+        },
+        "summary": "Refresh token",
+        "description": "",
+        "tags": [
+          "'users' service:"
+        ],
+        "parameters": [],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "oauth2": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/password/change": {
+      "post": {
+        "operationId": "Change-password-POST",
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "headers": {},
+            "examples": {}
+          }
+        },
+        "summary": "Change password",
+        "description": "Change password",
+        "tags": [
+          "'users' service:"
+        ],
+        "parameters": [
+          {
+            "name": "old_password",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "new_password",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "oauth2": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/password/forgot_request": {
+      "post": {
+        "operationId": "Forgot-password-(request)-POST",
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "headers": {},
+            "examples": {}
+          }
+        },
+        "summary": "Forgot password (request)",
+        "description": "Requests a forgot password email with link to reset it.",
+        "tags": [
+          "'users' service:"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/users/password/forgot_verify": {
+      "post": {
+        "operationId": "Forgot-password-(verify)-POST",
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "headers": {},
+            "examples": {}
+          }
+        },
+        "summary": "Forgot password (verify)",
+        "description": "Verifies and sets new password.",
+        "tags": [
+          "'users' service:"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "new_password",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "oauth2": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/password/score": {
+      "post": {
+        "operationId": "Score-password-POST",
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "headers": {},
+            "examples": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "headers": {},
+            "examples": {},
+            "schema": {
+              "type": "object",
+              "required": [
+                "error_code: ERR_PASSWORD_TOO_SHORT"
+              ],
+              "properties": {
+                "error_code: ERR_PASSWORD_TOO_SHORT": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Score password",
+        "description": "Checks password security.\nResponds `204` if password security is sufficient.\nResponds `400` with error code if not.",
+        "tags": [
+          "'users' service:"
+        ],
+        "parameters": [
+          {
+            "name": "password",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "OAuthValidResponse": {
+      "type": "object",
+      "required": [
+        "access_token",
+        "expires_in",
+        "token_type"
+      ],
+      "properties": {
+        "access_token": {
+          "type": "string",
+          "description": "valid JWT"
+        },
+        "expires_in": {
+          "type": "number"
+        },
+        "token_type": {
+          "type": "string"
+        }
+      }
+    },
+    "UserInfo": {
+      "type": "object",
+      "required": [
+        "email"
+      ],
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "id_card": {
+          "$ref": "#/definitions/IDCard"
+        }
+      }
+    },
+    "ChangeUserInfo": {
+      "type": "object",
+      "properties": {
+        "full_name": {
+          "type": "string"
+        },
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "id_card": {
+          "$ref": "#/definitions/IDCard"
+        }
+      }
+    },
+    "IDCard": {
+      "type": "object",
+      "required": [
+        "number"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "passport",
+            "drivers_license",
+            "personal"
+          ]
+        },
+        "number": {
+          "type": "string"
+        },
+        "valid_to": {
+          "type": "string",
+          "description": "09-15 (string) - ISO 8601 date part"
+        }
+      }
+    },
+    "Address": {
+      "type": "object",
+      "properties": {
+        "street_address": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "postal_code": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string",
+          "description": "only required when country is USA"
+        },
+        "country": {
+          "type": "string",
+          "description": "ISO 3166-1 alpha-3"
+        }
+      }
+    },
+    "ListAllDocumentsResponse": {
+      "type": "object",
+      "required": [
+        "id",
+        "guid"
+      ],
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "guid": {
+          "type": "string"
+        }
+      }
+    },
+    "CreateNewDocumentResponse": {
+      "type": "object",
+      "required": [
+        "id",
+        "guid",
+        "time_created",
+        "sha512",
+        "short_sha",
+        "private_key_field"
+      ],
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "guid": {
+          "type": "string"
+        },
+        "time_created": {
+          "type": "string"
+        },
+        "sha512": {
+          "type": "string"
+        },
+        "short_sha": {
+          "type": "string"
+        },
+        "private_key_field": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "oauth2": {
+      "type": "oauth2",
+      "flow": "accessCode",
+      "authorizationUrl": "",
+      "tokenUrl": "",
+      "scopes": {}
+    }
+  },
+  "tags": [
+    {
+      "name": "'mytitle' service:",
+      "description": "proposed endpoints include: `upload`, `secure`, `submit_hash`"
+    },
+    {
+      "name": "'users' service:",
+      "description": "## Registration [api/v1/users/register]\n\nRegistration takes 2 steps. In the first step client sends user name and email.\nThe server sends an email verification to the email address."
+    },
+    {
+      "name": "'billing' service:",
+      "description": "proposed endpoint include: `check_credit`, `count_in`, `top_up`, `account_info`, `history`"
+    },
+    {
+      "name": "'render' service:",
+      "description": "takes care of rendering pdfs and images like qr codes, certificates and so on.\n\nproposed endpoints include: `signable`, `qr_code`, `certificate`, `badge`"
+    }
+  ]
+}

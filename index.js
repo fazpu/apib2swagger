@@ -15,7 +15,7 @@ var apib2swagger = module.exports.convertParsed = function(apib, options) {
         'title': apib.name,
         'version': '',
         'description': apib.description
-    }
+    };
     apib.metadata.forEach(function(meta) {
         //console.log(meta);
         if (meta.name.toLowerCase() === 'host') {
@@ -57,7 +57,7 @@ var apib2swagger = module.exports.convertParsed = function(apib, options) {
         swagger.tags.push(tags[key]);
     }
     return swagger;
-}
+};
 
 function swaggerPathName(uriTemplate) {
     var params = {};
@@ -77,7 +77,9 @@ var swaggerDefinitions = function (definitions, resource) {
     var scheme;
     if (resource.name) {
         scheme = searchDataStructure(resource.content); // Attributes 1
-        definitions[resource.name] = scheme ? scheme : {};
+        if (scheme) {
+            definitions[resource.name] = scheme;
+        }
     }
     if (resource.model.content && resource.model.name) {
         scheme = searchDataStructure(resource.model.content); // Attribute 2
@@ -186,7 +188,7 @@ var swaggerOperation = function (context, pathParams, uriTemplate, action, tag) 
                     schema.push({'$ref': '#/definitions/' + escapeJSONPointer(request.reference.id + 'Model')});
                 }
                 // fall back to body
-                if (request.body && (schema == null || schema.length == 0)) {
+                if (request.body && (schema == null || schema.length === 0)) {
                     for (var n = 0; n < request.headers.length; n++) {
                         var header = request.headers[n];
                         //swaggerResponse.headers[header.name] = {'type':'string'}
@@ -216,13 +218,30 @@ var swaggerOperation = function (context, pathParams, uriTemplate, action, tag) 
             }
         }
     }
+
     if (schema.length == 1) {
-        operation.parameters.push({name: 'body', in: 'body', schema: schema[0]});
+        let isRefApplicable = false;
+
+        if (Object.keys(schema[0])[0] === '$ref') {
+            isRefApplicable = true;
+        } else {
+            for (let property of Object.entries(schema[0].properties)) {
+                if (property[1].type === 'object') isRefApplicable = true;
+            }
+        }
+        if (isRefApplicable) operation.parameters.push({name: 'body', in: 'body', schema: schema[0]});
+        else {
+            for (let property2 of Object.entries(schema[0].properties)) {
+                operation.parameters.push({
+                    name: property2[0], in: 'body', schema: property2[1]
+                });
+            }
+        }
     } else if (schema.length > 1) {
         operation.parameters.push({name: 'body', in: 'body', schema: {anyOf: schema}});
     }
     return operation;
-}
+};
 
 var swaggerHeaders = function(context, headers) {
     var params = [];
@@ -279,7 +298,7 @@ function swaggerParameters(parameters, uriTemplate) {
         'boolean': 'boolean', 'bool': 'boolean',
         'array': 'array',
         'file': 'file'
-    }
+    };
     var params = [];
     //console.log(parameters);
     for (var l = 0; l < parameters.length; l++) {
